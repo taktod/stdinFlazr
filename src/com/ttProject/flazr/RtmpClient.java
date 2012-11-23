@@ -40,8 +40,9 @@ public class RtmpClient {
 				// publish fileが-の場合は標準入力データを配信するものとする。
 				String targetFile = System.getProperty("user.home") + "/Sites/mario/mario.flv";
 				logger.info(targetFile);
-				options.setFileToPublish(targetFile);
-//				options.setReaderToPublish(new FlvLiveReader());
+				options.setFileToPublish(null); // 切り替えるためには、nullをいれておく必要があるみたい。
+				// 動作ターゲットを切り替えておく。
+				options.setReaderToPublish(new FlvLiveReader(targetFile));
 			}
 			connect(options);
 			return;
