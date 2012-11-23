@@ -22,7 +22,6 @@ import com.flazr.rtmp.RtmpMessage;
 import com.flazr.rtmp.RtmpPublisher;
 import com.flazr.rtmp.RtmpReader;
 import com.flazr.rtmp.RtmpWriter;
-import com.flazr.rtmp.client.ClientHandler;
 import com.flazr.rtmp.client.ClientOptions;
 import com.flazr.rtmp.message.BytesRead;
 import com.flazr.rtmp.message.ChunkSize;
@@ -205,7 +204,8 @@ public class ClientHandlerEx extends SimpleChannelUpstreamHandler {
                         logger.warn("un-handled server result for: {}", resultFor);
                     }
                 } else if(name.equals("onStatus")) {
-                    final Map<String, Object> temp = (Map) command.getArg(0);
+                    @SuppressWarnings({ "unchecked", "rawtypes" })
+					final Map<String, Object> temp = (Map) command.getArg(0);
                     final String code = (String) temp.get("code");
                     logger.info("onStatus code: {}", code);
                     if (code.equals("NetStream.Failed") // TODO cleanup
