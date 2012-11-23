@@ -12,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.flazr.rtmp.client.ClientOptions;
-import com.flazr.rtmp.client.ClientPipelineFactory;
 import com.flazr.util.Utils;
+import com.ttProject.flazr.client.ClientPipelineFactoryEx;
 import com.ttProject.flazr.io.flv.FlvLiveReader;
 
 /**
@@ -74,7 +74,7 @@ public class RtmpClient {
 		final ChannelFactory factory = new NioClientSocketChannelFactory(executor, executor);
 		final ClientBootstrap bootstrap = new ClientBootstrap(factory);
 		// clientPipelineFactoryをオーバーライドすることで、独自定義動作させます。
-		bootstrap.setPipelineFactory(new ClientPipelineFactory(options));
+		bootstrap.setPipelineFactory(new ClientPipelineFactoryEx(options));
 		bootstrap.setOption("tcpNoDelay" , true);
 		bootstrap.setOption("keepAlive", true);
 		return bootstrap;
