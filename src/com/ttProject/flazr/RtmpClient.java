@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.flazr.rtmp.client.ClientOptions;
 import com.flazr.rtmp.client.ClientPipelineFactory;
 import com.flazr.util.Utils;
+import com.ttProject.flazr.io.flv.FlvLiveReader;
 
 /**
  * rtmpの動作エントリー
@@ -37,6 +38,10 @@ public class RtmpClient {
 			// 単一動作のみ実行しておきます。
 			if("-".equals(options.getFileToPublish())) {
 				// publish fileが-の場合は標準入力データを配信するものとする。
+				String targetFile = System.getProperty("user.home") + "/Sites/mario/mario.flv";
+				logger.info(targetFile);
+				options.setFileToPublish(targetFile);
+//				options.setReaderToPublish(new FlvLiveReader());
 			}
 			connect(options);
 			return;
