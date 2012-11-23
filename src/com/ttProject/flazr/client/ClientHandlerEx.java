@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import com.flazr.io.flv.FlvWriter;
 import com.flazr.rtmp.LoopedReader;
 import com.flazr.rtmp.RtmpMessage;
-import com.flazr.rtmp.RtmpPublisher;
 import com.flazr.rtmp.RtmpReader;
 import com.flazr.rtmp.RtmpWriter;
 import com.flazr.rtmp.client.ClientOptions;
@@ -51,7 +50,7 @@ public class ClientHandlerEx extends SimpleChannelUpstreamHandler {
     private long bytesReadLastSent;    
     private int bytesWrittenWindow = 2500000;
     
-    private RtmpPublisher publisher;
+    private RtmpPublisherEx publisher;
     private int streamId;    
 
     public void setSwfvBytes(byte[] swfvBytes) {
