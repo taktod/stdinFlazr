@@ -155,6 +155,7 @@ public abstract class RtmpPublisherEx {
             }
         } //====================================================================
         if (message == null || playLength >= 0 && timePosition > (seekTime + playLength)) {
+        	// ここで強制的に次のtic待ちにもっていく必要あり。
             stop(channel);
             return;
         }
@@ -177,7 +178,8 @@ public abstract class RtmpPublisherEx {
         header.setStreamId(streamId);
         final ChannelFuture future = channel.write(message);
         future.addListener(new ChannelFutureListener() {
-            @Override public void operationComplete(final ChannelFuture cf) {
+            @Override
+            public void operationComplete(final ChannelFuture cf) {
                 final long completedIn = System.currentTimeMillis() - writeTime;
                 if(completedIn > 2000) {
                     logger.warn("channel busy? time taken to write last message: {}", completedIn);

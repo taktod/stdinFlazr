@@ -1,45 +1,66 @@
 package com.ttProject.flazr.io.flv;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
+import java.io.FileInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.flazr.io.BufferReader;
-import com.flazr.io.FileChannelReader;
 import com.flazr.io.flv.FlvAtom;
 import com.flazr.io.flv.FlvReader;
 import com.flazr.rtmp.RtmpMessage;
 import com.flazr.rtmp.RtmpReader;
-import com.flazr.rtmp.message.Aggregate;
-import com.flazr.rtmp.message.MessageType;
 import com.flazr.rtmp.message.Metadata;
 import com.flazr.rtmp.message.MetadataAmf0;
+import com.ttProject.flazr.FlvPacketReader;
 
 public class FlvLiveReader implements RtmpReader {
     private static final Logger logger = LoggerFactory.getLogger(FlvReader.class);
+    private final LinkedBlockingQueue<FlvAtom> dataQueue = new LinkedBlockingQueue<FlvAtom>();
     
-    private final BufferReader in;
-//    private final long mediaStartPosition;
-    private final Metadata metadata;
+//    private final BufferReader in;
+    private Metadata metadata;
     private int aggregateDuration;    
+    private final Thread stdinThread;
 
     public FlvLiveReader(final String path) {
+    	// FlvLiveReaderの作成の方がさきにくるので、metaデータはデフォルトとします。
+    	// 標準入力を解析するThreadをつくっておく。
+    	stdinThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					FlvPacketReader reader = new FlvPacketReader();
+//					ReadableByteChannel stdinChannel = Channels.newChannel(System.in);
+					// dummy
+					String targetFile = System.getProperty("user.home") + "/Sites/mario/mario.flv";
+					FileChannel stdinChannel = new FileInputStream(targetFile).getChannel();
+					// 実処理
+					// データを確認する。
+					while(true) {
+						// オブジェクトを変更しないと、getPacketsがうまく動作しないみたいです。
+						ByteBuffer buffer = ByteBuffer.allocate(65536);
+						if(stdinChannel.read(buffer) < 0) {
+							break;
+						}
+						buffer.flip();
+						List<FlvAtom> data = reader.getPackets(buffer);
+						dataQueue.addAll(data);
+//						System.out.println(data);
+					}
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+    	stdinThread.start();
+    	// threadをつくって、stdinのデータを取り込みqueueにいれていく動作をつくっておく。
     	logger.info("FlvLiveReader");
-        in = new FileChannelReader(path);
-        in.position(13); // skip flv header
-        final RtmpMessage metadataAtom = next();
-        final RtmpMessage metadataTemp = 
-                MessageType.decode(metadataAtom.getHeader(), metadataAtom.encode());
-        if(metadataTemp.getHeader().isMetadata()) {
-            metadata = (Metadata) metadataTemp;
-//            mediaStartPosition = in.position();
-        } else {
-            logger.warn("flv file does not start with 'onMetaData', using empty one");
-            metadata = new MetadataAmf0("onMetaData");
-            in.position(13);
-//            mediaStartPosition = 13;
-        }
+        metadata = new MetadataAmf0("onMetaData");
         logger.debug("flv file metadata: {}", metadata);
     }
     @Override
@@ -86,45 +107,32 @@ public class FlvLiveReader implements RtmpReader {
     @Override
     public boolean hasNext() {        
     	logger.info("hasNext");
-        return in.position() < in.size();
+    	return true; // 絶対にあることにしておく。
     }
-
-
-    private static final int AGGREGATE_SIZE_LIMIT = 65536;
 
     @Override
     public RtmpMessage next() {
     	logger.info("next");
         if(aggregateDuration <= 0) {
-            return new FlvAtom(in);
+        	// aggregateDirationは0であることが見越されます。
+        	// flvAtomを生成して、linkedBlockingQueueにいれておき、popして応答すればそれでいいと思う。
+        	try {
+        		return dataQueue.take();
+        	}
+        	catch (Exception e) {
+        		logger.error("error", e);
+        		throw new RuntimeException("takeに失敗しました。");
+			}
         }
-        final ChannelBuffer out = ChannelBuffers.dynamicBuffer();
-        int firstAtomTime = -1;
-        while(hasNext()) {
-            final FlvAtom flvAtom = new FlvAtom(in);
-            final int currentAtomTime = flvAtom.getHeader().getTime();
-            if(firstAtomTime == -1) {
-                firstAtomTime = currentAtomTime;
-            }
-            final ChannelBuffer temp = flvAtom.write();
-            if(out.readableBytes() + temp.readableBytes() > AGGREGATE_SIZE_LIMIT) {
-            	// この部分は必要になったら再度利用できるようにしなければいけないかも・・・
-            	throw new RuntimeException("前のデータを読み直すことはとりあえず禁止しておく。");
-//                prev();
-//                break;
-            }
-            out.writeBytes(temp);
-            if(currentAtomTime - firstAtomTime > aggregateDuration) {
-                break;
-            }
+        else {
+        	throw new RuntimeException("aggregateDurationが0よりおおきかった。");
         }
-        return new Aggregate(firstAtomTime, out);
     }
 
     @Override
     public void close() {
     	logger.info("close");
-        in.close();
+    	stdinThread.interrupt();
     }
 
 }

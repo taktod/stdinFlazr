@@ -4,8 +4,8 @@ import org.jboss.netty.buffer.ChannelBuffer;
 
 import com.flazr.io.BufferReader;
 
-public class SydinChannelReader implements BufferReader {
-
+public class StdinChannelReader implements BufferReader {
+	// はじめのデータがflvHeaderであることを確認する必要がある。
 	@Override
 	public long size() {
 		// TODO Auto-generated method stub
