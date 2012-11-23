@@ -33,11 +33,12 @@ import com.flazr.rtmp.message.SetPeerBw;
 import com.flazr.rtmp.message.WindowAckSize;
 import com.flazr.util.ChannelUtils;
 import com.flazr.util.Utils;
+import com.ttProject.flazr.rtmp.RtmpPublisherEx;
 
 @ChannelPipelineCoverage("one")
 public class ClientHandlerEx extends SimpleChannelUpstreamHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandlerEx.class);
 
     private int transactionId = 1;
     private Map<Integer, String> transactionToCommandMap;
@@ -178,14 +179,14 @@ public class ClientHandlerEx extends SimpleChannelUpstreamHandler {
                         if(options.getPublishType() != null) { // TODO append, record                            
                             RtmpReader reader;
                             if(options.getFileToPublish() != null) {
-                                reader = RtmpPublisher.getReader(options.getFileToPublish());
+                                reader = RtmpPublisherEx.getReader(options.getFileToPublish());
                             } else {
                                 reader = options.getReaderToPublish();
                             }
                             if(options.getLoop() > 1) {
                                 reader = new LoopedReader(reader, options.getLoop());
                             }
-                            publisher = new RtmpPublisher(reader, streamId, options.getBuffer(), false, false) {
+                            publisher = new RtmpPublisherEx(reader, streamId, options.getBuffer(), false, false) {
                                 @Override protected RtmpMessage[] getStopMessages(long timePosition) {
                                     return new RtmpMessage[]{Command.unpublish(streamId)};
                                 }
