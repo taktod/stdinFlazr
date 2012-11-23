@@ -1,0 +1,1 @@
+java -Xmx512m -cp conf:lib/*:stdinFlazr.jar com.ttProject.flazr.RtmpClient $*

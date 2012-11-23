@@ -1,8 +1,8 @@
 package com.ttProject.flazr.io.flv;
 
-import java.io.FileInputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -34,10 +34,10 @@ public class FlvLiveReader implements RtmpReader {
 			public void run() {
 				try {
 					FlvPacketReader reader = new FlvPacketReader();
-//					ReadableByteChannel stdinChannel = Channels.newChannel(System.in);
+					ReadableByteChannel stdinChannel = Channels.newChannel(System.in);
 					// dummy
-					String targetFile = System.getProperty("user.home") + "/Sites/mario/mario.flv";
-					FileChannel stdinChannel = new FileInputStream(targetFile).getChannel();
+//					String targetFile = System.getProperty("user.home") + "/Sites/mario/mario.flv";
+//					FileChannel stdinChannel = new FileInputStream(targetFile).getChannel();
 					// 実処理
 					// データを確認する。
 					while(true) {

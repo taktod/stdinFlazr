@@ -18,13 +18,6 @@ public class FlvPacketReader {
 	private ByteBuffer buffer = null;
 	public List<FlvAtom> getPackets(ByteBuffer data) {
 		if(buffer != null) {
-			int position = buffer.position();
-			byte[] dat = new byte[11];
-			buffer.get(dat);
-			System.out.println(Utils.toHex(dat, true));
-			buffer.position(position);
-			System.out.println(buffer.remaining());
-			System.out.println(data.remaining());
 			int length = buffer.remaining() + data.remaining();
 			ByteBuffer newBuffer = ByteBuffer.allocate(length);
 			newBuffer.put(buffer);
@@ -54,7 +47,6 @@ public class FlvPacketReader {
 	 */
 	private FlvAtom analizeData(ByteBuffer buffer) {
 		if(!firstChecked) {
-			System.out.println("check again");
 			if(buffer.remaining() < 13) {
 				// データがたりないので、次のデータ待ち
 				return null;
@@ -95,11 +87,6 @@ public class FlvPacketReader {
 		int size = getSizeFromHeader(packetHeader);
 		System.out.println(11+ size + 4);
 		if(buffer.remaining() < size + 4) {
-			// 読み込むのにはデータがたりなかった。
-			buffer.position(position);
-			byte[] dat = new byte[11];
-			buffer.get(dat);
-			System.out.println(Utils.toHex(dat, true));
 			buffer.position(position);
 			return null;
 		}
